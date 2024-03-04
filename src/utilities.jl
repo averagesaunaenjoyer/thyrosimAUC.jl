@@ -224,19 +224,19 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
        ylabel="T4 (mcg/L)", title=title)
     total_time_inside_hlines["T4"] += calculate_time_inside_hlines(sol.t, T4, [45, 120])
     hline!([45, 120], label= "")
-    annotate!(sol.t[end] / 24.0 + 0.1, t4lim - 5, text("Time in normal ranges: $(total_time_inside_hlines["T4"]) days", :right))
+    text!(sol.t[end] / 24.0 + 0.1, t4lim - 5, "Time in normal ranges: $(total_time_inside_hlines["T4"]) days", halign=:right)
     
     p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", 
        ylabel="T3 (mcg/L)")
     total_time_inside_hlines["T3"] += calculate_time_inside_hlines(sol.t, T3, [0.6, 1.8])
     hline!([0.6, 1.8], label= "")
-    annotate!(sol.t[end] / 24.0 + 0.1, t3lim - 0.2, text("Time in normal ranges: $(total_time_inside_hlines["T3"]) days", :right))
+    text!(sol.t[end] / 24.0 + 0.1, t3lim - 0.2, "Time in normal ranges: $(total_time_inside_hlines["T3"]) days", halign=:right)
     
     p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="",
        ylabel="TSH (mU/L)", xlabel="time [days]")
     total_time_inside_hlines["TSH"] += calculate_time_inside_hlines(sol.t, TSH, [0.45, 4.5])
     hline!([0.45, 4.5], label= "")
-    annotate!(sol.t[end] / 24.0 + 0.1, tshlim - 0.5, text("Time in normal ranges: $(total_time_inside_hlines["TSH"]) days", :right))
+    text!(sol.t[end] / 24.0 + 0.1, tshlim - 0.5, "Time in normal ranges: $(total_time_inside_hlines["TSH"]) days", halign=:right)
     
     plot(p1, p2, p3, layout=(3, 1))
     
