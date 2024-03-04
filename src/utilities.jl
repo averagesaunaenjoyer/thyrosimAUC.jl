@@ -233,18 +233,18 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     p3 = hline!([0.45, 4.5], label= "")  # Adding horizontal lines to p3
 
     # Creating additional plots for deviation from normal ranges
-    deviation_plot(p, sol, T4, t4lim, "T4 Deviation", 45, 120)
-    deviation_plot(p, sol, T3, t3lim, "T3 Deviation", 0.6, 1.8)
-    deviation_plot(p, sol, TSH, tshlim, "TSH Deviation", 0.45, 4.5)
+    p4 = deviation_plot(p, sol, T4, t4lim, "T4 Deviation", 45, 120)
+    p5 = deviation_plot(p, sol, T3, t3lim, "T3 Deviation", 0.6, 1.8)
+    p6 = deviation_plot(p, sol, TSH, tshlim, "TSH Deviation", 0.45, 4.5)
 
     # Combining the subplots into a single layout with 3 rows and 2 columns
-    plot(p1, p2, p3, layout=(3, 2), legend=false)  # Set legend=false to avoid duplicate legends
+    plot(p1, p2, p3, p4, p5, p6 layout=(6, 1), legend=false)  # Set legend=false to avoid duplicate legends
 end
 
 # Function to create deviation plots
 function deviation_plot(p, sol, hormone, ylim, ylabel, lower_limit, upper_limit)
     deviation = abs.(hormone .- ((lower_limit + upper_limit) / 2))  # Broadcast the subtraction
-    plot!(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
+    p = plot(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
          label="", ylabel=ylabel, xlabel="time [days]", legend=false)
     hline!([0], color=:black, linestyle=:dash, label="Normal Range")
 end
