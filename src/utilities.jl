@@ -226,15 +226,15 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     
     p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
     p1 = hline!([45, 120], label="")
-    vline!([sol.t[1]/24, sol.t[end]/24], color=:red, label="")  # Add red line for total area outside
+    hline!([t4lim, t4lim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
     
     p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
     p2 = hline!([0.6, 1.8], label="")
-    vline!([sol.t[1]/24, sol.t[end]/24], color=:red, label="")  # Add red line for total area outside
+    hline!([t3lim, t3lim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
     
     p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
     p3 = hline!([0.45, 4.5], label="")
-    vline!([sol.t[1]/24, sol.t[end]/24], color=:red, label="")  # Add red line for total area outside
+    hline!([tshlim, tshlim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
     
     plot(p1, p2, p3, layout=(3, 1))
 end
