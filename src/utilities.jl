@@ -206,6 +206,7 @@ function schneider_data(;exclude_missing=true)
 end
 
 function output_plot(sol; title::AbstractString = "Thyrosim simulation", automargins::Bool=true)
+
     # parameters to adjust figure limits
     p = sol.prob.p 
     t4lim, t3lim, tshlim = 140, 4, 10
@@ -218,26 +219,27 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
         t3lim = max(1.2maximum(T3), 2.5)
         tshlim = max(1.2maximum(TSH), 5.5)
     end
-    
-    # Calculate the area outside normal margins
-    area_outside_T4 = max(0, sum(T4 .- t4lim))
-    area_outside_T3 = max(0, sum(T3 .- t3lim))
-    area_outside_TSH = max(0, sum(TSH .- tshlim))
-    
+
+    # Define the normal ranges
+    normal_range_T4 = [45, 120]
+    normal_range_T3 = [0.6, 1.8]
+    normal_range_TSH = [0.45, 4.5]
+
     p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
-    p1 = hline!([45, 120], label="")
-    hline!([t4lim, t4lim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
-    
+    plot!(p1, [normal_range_T4[1], normal_range_T4[1], normal_range_T4[2], normal_range_T4[2]], [0, t4lim, t4lim, 0], color=:orange, alpha=0.3, label="Normal Range")
+    plot!(p1, sol.t / 24.0, T4, fillrange=normal_range_T4, fillalpha=0.3, color=:blue, label="")
+
     p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
-    p2 = hline!([0.6, 1.8], label="")
-    hline!([t3lim, t3lim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
-    
+    plot!(p2, [normal_range_T3[1], normal_range_T3[1], normal_range_T3[2], normal_range_T3[2]], [0, t3lim, t3lim, 0], color=:orange, alpha=0.3, label="Normal Range")
+    plot!(p2, sol.t / 24.0, T3, fillrange=normal_range_T3, fillalpha=0.3, color=:blue, label="")
+
     p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
-    p3 = hline!([0.45, 4.5], label="")
-    hline!([tshlim, tshlim], color=:red, linestyle=:dash, label="Total area outside")  # Add red dashed line for total area outside
-    
+    plot!(p3, [normal_range_TSH[1], normal_range_TSH[1], normal_range_TSH[2], normal_range_TSH[2]], [0, tshlim, tshlim, 0], color=:orange, alpha=0.3, label="Normal Range")
+    plot!(p3, sol.t / 24.0, TSH, fillrange=normal_range_TSH, fillalpha=0.3, color=:blue, label="")
+
     plot(p1, p2, p3, layout=(3, 1))
 end
+
 
 function plot_blakesley(sol, which::AbstractString="400"; 
     title::AbstractString = "Thyrosim simulation (Blakesley data)", automargins::Bool=true)
