@@ -209,44 +209,44 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     # parameters to adjust figure limits
     p = sol.prob.p 
     t4lim, t3lim, tshlim = 140, 4, 10
+
+    # Scaling the simulation results to represent hormone concentrations
     T4 = 777.0 * sol[1, :] / p[47]
     T3 = 651.0 * sol[4, :] / p[47]
     TSH = 5.6 * sol[7, :] / p[48]
+
+    # Adjusting figure limits based on the scaled hormone concentrations
     if automargins
-        t4lim = max(1.2maximum(T4), 130.0)
-        t3lim = max(1.2maximum(T3), 2.5)
-        tshlim = max(1.2maximum(TSH), 5.5)
+        t4lim = max(1.2 * maximum(T4), 130.0)
+        t3lim = max(1.2 * maximum(T3), 2.5)
+        tshlim = max(1.2 * maximum(TSH), 5.5)
     end
 
-    total_time_inside_hlines = Dict("T4" => 0.0, "T3" => 0.0, "TSH" => 0.0)  # Initialize total time
+    # Creating subplots for T4, T3, and TSH
+    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
+    p1 = hline!([45, 120], label= "")  # Adding horizontal lines to p1
 
-    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="",
-       ylabel="T4 (mcg/L)", title=title)
-    total_time_inside_hlines["T4"] += calculate_time_inside_hlines(sol.t, T4, [45, 120])
-    hline!([45, 120], label= "")
-    text!(sol.t[end] / 24.0 + 0.1, t4lim - 5, "Time in normal ranges: $(total_time_inside_hlines["T4"]) days", halign=:right)
-    
-    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", 
-       ylabel="T3 (mcg/L)")
-    total_time_inside_hlines["T3"] += calculate_time_inside_hlines(sol.t, T3, [0.6, 1.8])
-    hline!([0.6, 1.8], label= "")
-    text!(sol.t[end] / 24.0 + 0.1, t3lim - 0.2, "Time in normal ranges: $(total_time_inside_hlines["T3"]) days", halign=:right)
-    
-    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="",
-       ylabel="TSH (mU/L)", xlabel="time [days]")
-    total_time_inside_hlines["TSH"] += calculate_time_inside_hlines(sol.t, TSH, [0.45, 4.5])
-    hline!([0.45, 4.5], label= "")
-    text!(sol.t[end] / 24.0 + 0.1, tshlim - 0.5, "Time in normal ranges: $(total_time_inside_hlines["TSH"]) days", halign=:right)
-    
+    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
+    p2 = hline!([0.6, 1.8], label= "")  # Adding horizontal lines to p2
+
+    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
+    p3 = hline!([0.45, 4.5], label= "")  # Adding horizontal lines to p3
+
+    # Creating additional plots for deviation from normal ranges
+    deviation_plot(p, sol, T4, t4lim, "T4 Deviation", 45, 120)
+    deviation_plot(p, sol, T3, t3lim, "T3 Deviation", 0.6, 1.8)
+    deviation_plot(p, sol, TSH, tshlim, "TSH Deviation", 0.45, 4.5)
+
+    # Combining the subplots into a single layout with 3 rows and 1 column
     plot(p1, p2, p3, layout=(3, 1))
-    
-    return total_time_inside_hlines
 end
 
-# Helper function to calculate time inside hlines
-function calculate_time_inside_hlines(t, data, hlines)
-    inside_hlines = (data .>= hlines[1]) .& (data .<= hlines[2])
-    return sum(diff(t) .* inside_hlines[1:end-1])
+# Function to create deviation plots
+function deviation_plot(p, sol, hormone, ylim, ylabel, lower_limit, upper_limit)
+    deviation = abs.(hormone - (lower_limit + upper_limit) / 2)  # Calculate deviation from normal
+    plot(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
+         label="", ylabel=ylabel, xlabel="time [days]")
+    hline!([0], color=:black, linestyle=:dash, label="Normal Range")
 end
 
 
