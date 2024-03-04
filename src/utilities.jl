@@ -230,18 +230,18 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     hline!([0.45, 4.5], label="")
     
     # Update plots to change color of blue lines outside normal range to red
-    update_color!(p1, T4, [45, 120], :red)
-    update_color!(p2, T3, [0.6, 1.8], :red)
-    update_color!(p3, TSH, [0.45, 4.5], :red)
+    update_color!(p1, sol.t / 24.0, T4, [45, 120], :red)
+    update_color!(p2, sol.t / 24.0, T3, [0.6, 1.8], :red)
+    update_color!(p3, sol.t / 24.0, TSH, [0.45, 4.5], :red)
     
     plot(p1, p2, p3, layout=(3, 1))
 end
 
 # Helper function to update color of blue lines based on normal range
-function update_color!(p, data, normal_range, color)
+function update_color!(p, x, data, normal_range, color)
     for i in 1:length(data)
         if data[i] < normal_range[1] || data[i] > normal_range[2]
-            plot!(p, [p.x[i]], [data[i]], color=color, markershape=:circle)
+            plot!(p, [x[i]], [data[i]], color=color, markershape=:circle)
         end
     end
 end
