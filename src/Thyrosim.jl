@@ -13,7 +13,7 @@ module Thyrosim
     using DifferentialEquations
     using DataFrames
     
-    import Plots:plot, hline!, scatter!, vline!
+    import Plots:plot, hline!, scatter!, vline!, plot!
 
     include("thyrosim_odes.jl")
     include("utilities.jl")
