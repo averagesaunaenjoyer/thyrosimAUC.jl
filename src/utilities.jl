@@ -238,7 +238,7 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     p6 = deviation_plot(p, sol, TSH, tshlim, "TSH Deviation", 0.45, 4.5)
 
     # Combining the subplots into a single layout with 3 rows and 2 columns
-    plot(p1, p2, p3, p4, p5, p6 layout=(6, 1), legend=false)  # Set legend=false to avoid duplicate legends
+    plot(p1, p2, p3, p4, p5, p6, layout=(6, 1), legend=false)  # Set legend=false to avoid duplicate legends
 end
 
 # Function to create deviation plots
