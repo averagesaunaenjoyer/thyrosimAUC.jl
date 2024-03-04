@@ -212,38 +212,41 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     T4 = 777.0 * sol[1, :] / p[47]
     T3 = 651.0 * sol[4, :] / p[47]
     TSH = 5.6 * sol[7, :] / p[48]
-    
     if automargins
         t4lim = max(1.2maximum(T4), 130.0)
         t3lim = max(1.2maximum(T3), 2.5)
         tshlim = max(1.2maximum(TSH), 5.5)
     end
 
-    # Create initial plots with orange lines
-    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
-    hline!([45, 120], label="")
+    total_time_inside_hlines = Dict("T4" => 0.0, "T3" => 0.0, "TSH" => 0.0)  # Initialize total time
+
+    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="",
+       ylabel="T4 (mcg/L)", title=title)
+    total_time_inside_hlines["T4"] += calculate_time_inside_hlines(sol.t, T4, [45, 120])
+    hline!([45, 120], label= "")
+    annotate!(sol.t[end] / 24.0 + 0.1, t4lim - 5, text("Time in normal ranges: $(total_time_inside_hlines["T4"]) days", :right))
     
-    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
-    hline!([0.6, 1.8], label="")
+    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", 
+       ylabel="T3 (mcg/L)")
+    total_time_inside_hlines["T3"] += calculate_time_inside_hlines(sol.t, T3, [0.6, 1.8])
+    hline!([0.6, 1.8], label= "")
+    annotate!(sol.t[end] / 24.0 + 0.1, t3lim - 0.2, text("Time in normal ranges: $(total_time_inside_hlines["T3"]) days", :right))
     
-    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
-    hline!([0.45, 4.5], label="")
-    
-    # Update plots to change color of blue lines outside normal range to red
-    update_color!(p1, sol.t / 24.0, T4, [45, 120], :red)
-    update_color!(p2, sol.t / 24.0, T3, [0.6, 1.8], :red)
-    update_color!(p3, sol.t / 24.0, TSH, [0.45, 4.5], :red)
+    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="",
+       ylabel="TSH (mU/L)", xlabel="time [days]")
+    total_time_inside_hlines["TSH"] += calculate_time_inside_hlines(sol.t, TSH, [0.45, 4.5])
+    hline!([0.45, 4.5], label= "")
+    annotate!(sol.t[end] / 24.0 + 0.1, tshlim - 0.5, text("Time in normal ranges: $(total_time_inside_hlines["TSH"]) days", :right))
     
     plot(p1, p2, p3, layout=(3, 1))
+    
+    return total_time_inside_hlines
 end
 
-# Helper function to update color of blue lines based on normal range
-function update_color!(p, x, data, normal_range, color)
-    for i in 1:length(data)
-        if data[i] < normal_range[1] || data[i] > normal_range[2]
-            plot!(p, [x[i]], [data[i]], color=color, markershape=:circle)
-        end
-    end
+# Helper function to calculate time inside hlines
+function calculate_time_inside_hlines(t, data, hlines)
+    inside_hlines = (data .>= hlines[1]) .& (data .<= hlines[2])
+    return sum(diff(t) .* inside_hlines[1:end-1])
 end
 
 
