@@ -206,7 +206,6 @@ function schneider_data(;exclude_missing=true)
 end
 
 function output_plot(sol; title::AbstractString = "Thyrosim simulation", automargins::Bool=true)
-
     # parameters to adjust figure limits
     p = sol.prob.p 
     t4lim, t3lim, tshlim = 140, 4, 10
@@ -220,24 +219,31 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
         tshlim = max(1.2maximum(TSH), 5.5)
     end
 
-    # Define the normal ranges
-    normal_range_T4 = [45, 120]
-    normal_range_T3 = [0.6, 1.8]
-    normal_range_TSH = [0.45, 4.5]
-
+    # Create initial plots with orange lines
     p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
-    plot!(p1, [normal_range_T4[1], normal_range_T4[1], normal_range_T4[2], normal_range_T4[2]], [0, t4lim, t4lim, 0], color=:orange, alpha=0.3, label="Normal Range")
-    plot!(p1, sol.t / 24.0, T4, fillrange=normal_range_T4, fillalpha=0.3, color=:blue, label="")
-
+    hline!([45, 120], label="")
+    
     p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
-    plot!(p2, [normal_range_T3[1], normal_range_T3[1], normal_range_T3[2], normal_range_T3[2]], [0, t3lim, t3lim, 0], color=:orange, alpha=0.3, label="Normal Range")
-    plot!(p2, sol.t / 24.0, T3, fillrange=normal_range_T3, fillalpha=0.3, color=:blue, label="")
-
+    hline!([0.6, 1.8], label="")
+    
     p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
-    plot!(p3, [normal_range_TSH[1], normal_range_TSH[1], normal_range_TSH[2], normal_range_TSH[2]], [0, tshlim, tshlim, 0], color=:orange, alpha=0.3, label="Normal Range")
-    plot!(p3, sol.t / 24.0, TSH, fillrange=normal_range_TSH, fillalpha=0.3, color=:blue, label="")
-
+    hline!([0.45, 4.5], label="")
+    
+    # Update plots to change color of blue lines outside normal range to red
+    update_color!(p1, T4, [45, 120], :red)
+    update_color!(p2, T3, [0.6, 1.8], :red)
+    update_color!(p3, TSH, [0.45, 4.5], :red)
+    
     plot(p1, p2, p3, layout=(3, 1))
+end
+
+# Helper function to update color of blue lines based on normal range
+function update_color!(p, data, normal_range, color)
+    for i in 1:length(data)
+        if data[i] < normal_range[1] || data[i] > normal_range[2]
+            plot!(p, [p.x[i]], [data[i]], color=color, markershape=:circle)
+        end
+    end
 end
 
 
