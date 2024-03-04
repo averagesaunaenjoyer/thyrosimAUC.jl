@@ -241,12 +241,14 @@ function output_plot(sol; title::AbstractString = "Thyrosim simulation", automar
     plot(p1, p2, p3, layout=(3, 2), legend=false)  # Set legend=false to avoid duplicate legends
 end
 
+# Function to create deviation plots
 function deviation_plot(p, sol, hormone, ylim, ylabel, lower_limit, upper_limit)
     deviation = abs.(hormone .- ((lower_limit + upper_limit) / 2))  # Broadcast the subtraction
-    plot(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
-         label="", ylabel=ylabel, xlabel="time [days]")
+    plot!(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
+         label="", ylabel=ylabel, xlabel="time [days]", legend=false)
     hline!([0], color=:black, linestyle=:dash, label="Normal Range")
 end
+
 
 
 function plot_blakesley(sol, which::AbstractString="400"; 
