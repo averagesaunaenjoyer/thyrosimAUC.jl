@@ -206,50 +206,68 @@ function schneider_data(;exclude_missing=true)
 end
 
 function output_plot(sol; title::AbstractString = "Thyrosim simulation", automargins::Bool=true)
+
     # parameters to adjust figure limits
     p = sol.prob.p 
     t4lim, t3lim, tshlim = 140, 4, 10
-
-    # Scaling the simulation results to represent hormone concentrations
     T4 = 777.0 * sol[1, :] / p[47]
     T3 = 651.0 * sol[4, :] / p[47]
     TSH = 5.6 * sol[7, :] / p[48]
-
-    # Adjusting figure limits based on the scaled hormone concentrations
     if automargins
-        t4lim = max(1.2 * maximum(T4), 130.0)
-        t3lim = max(1.2 * maximum(T3), 2.5)
-        tshlim = max(1.2 * maximum(TSH), 5.5)
+        t4lim = max(1.2maximum(T4), 130.0)
+        t3lim = max(1.2maximum(T3), 2.5)
+        tshlim = max(1.2maximum(TSH), 5.5)
     end
 
-    # Creating subplots for T4, T3, and TSH
-    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="", ylabel="T4 (mcg/L)", title=title)
-    p1 = hline!([45, 120], label= "")  # Adding horizontal lines to p1
-
-    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", ylabel="T3 (mcg/L)")
-    p2 = hline!([0.6, 1.8], label= "")  # Adding horizontal lines to p2
-
-    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="", ylabel="TSH (mU/L)", xlabel="time [days]")
-    p3 = hline!([0.45, 4.5], label= "")  # Adding horizontal lines to p3
-
-    # Creating additional plots for deviation from normal ranges
-    p4 = deviation_plot(p, sol, T4, t4lim, "T4 Deviation", 45, 120)
-    p5 = deviation_plot(p, sol, T3, t3lim, "T3 Deviation", 0.6, 1.8)
-    p6 = deviation_plot(p, sol, TSH, tshlim, "TSH Deviation", 0.45, 4.5)
-
-    # Combining the subplots into a single layout with 3 rows and 2 columns
-    plot(p1, p4, p2, p5, p3, p6, layout=(3, 2), legend=false)  # Set legend=false to avoid duplicate legends
+    p1 = plot(sol.t / 24.0, T4, ylim=(0, t4lim), label="",
+       ylabel="T4 (mcg/L)", title=title)
+    p1 = hline!([45, 120], label= "")
+    
+    p2 = plot(sol.t / 24.0, T3, ylim=(0, t3lim), label="", 
+       ylabel="T3 (mcg/L)")
+    p2 = hline!([0.6, 1.8], label= "")
+    
+    p3 = plot(sol.t / 24.0, TSH, ylim=(0, tshlim), label="",
+       ylabel="TSH (mU/L)", xlabel="time [days]")
+    p3 = hline!([0.45, 4.5], label= "")
+	
+	#Getting time and T3 data points
+	area_time = sol.t/24.0
+	
+	#Defining healthy T3 ranges
+	normal_range_low = 0.6
+    normal_range_high = 1.8
+	
+	#Defining areas of curve below and above normal range
+    total_area_above = 0.0
+    total_area_below = 0.0
+	
+	#Calculate AUC using trapezoidal rule
+	
+	 for i in 1:length(T3)-1
+        h = area_time[i+1] - area_time[i] #Difference in time points produced by THYROSIM
+        # If levels of T3 are above normal range
+        if T3[i] > normal_range_high || T3[i+1] > normal_range_high
+            a = max(T3[i] - normal_range_high, 0) #Only use difference between value and upper limit
+            b = max(T3[i+1] - normal_range_high, 0)
+            total_area_above += (a + b) / 2 * h #Area of trapezoid
+        end
+       # If levels of T3 are below normal range
+        if T3[i] < normal_range_low || T3[i+1] < normal_range_low
+            a = max(normal_range_low - T3[i], 0)  #Only use difference between value and lower limit
+            b = max(normal_range_low - T3[i+1], 0)
+            total_area_below += (a + b) / 2 * h
+        end
+    end
+	
+	total_area = total_area_above + total_area_below
+	
+	println("Total area outside of normal range= ", total_area, " days*mcg/L")
+	
+	plot(p1, p2, p3, layout=(3, 1))
+    
+  
 end
-
-# Function to create deviation plots
-function deviation_plot(p, sol, hormone, ylim, ylabel, lower_limit, upper_limit)
-    deviation = abs.(hormone .- ((lower_limit + upper_limit) / 2))  # Broadcast the subtraction
-    p = plot(sol.t / 24.0, deviation, ylim=(0, max(1.2 * maximum(deviation), 5.0)),
-         label="", ylabel=ylabel, xlabel="time [days]", legend=false)
-    hline!([0], color=:black, linestyle=:dash, label="Normal Range")
-end
-
-
 
 function plot_blakesley(sol, which::AbstractString="400"; 
     title::AbstractString = "Thyrosim simulation (Blakesley data)", automargins::Bool=true)
@@ -418,5 +436,6 @@ function simulate(
 
     # solve and return ode solution
     prob = ODEProblem(thyrosim,ic,(0.0, 24days),p,callback=cbk)
-    return solve(prob)
+	solution = solve(prob, saveat = 0.01)
+    return solution
 end
